@@ -1,0 +1,222 @@
+<div class="app-wrapper">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-icon">🍺</div>
+        <div class="brand-text">
+          <h1>Backus Ventas PWA</h1>
+          <span class="brand-sub">Sistema de Ventas Móvil</span>
+        </div>
+      </div>
+
+      @if (online) {
+        <div class="estado conectado">
+          <span class="dot"></span> CONECTADO
+        </div>
+      } @else {
+        <div class="estado desconectado">
+          <span class="dot"></span> SIN CONEXIÓN
+        </div>
+      }
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <!-- Alert de estado de conexión -->
+    @if (!online) {
+      <div class="alert alert-offline">
+        <span class="alert-icon">⚠️</span>
+        <div>
+          <strong>Modo Offline activo</strong>
+          <p>El catálogo se muestra desde caché. Los pedidos se guardarán localmente y se sincronizarán cuando haya conexión.</p>
+        </div>
+      </div>
+    }
+
+    <!-- Mensaje de feedback -->
+    @if (mensajeGuardado) {
+      <div class="feedback-toast" [class]="'toast-' + tipoMensaje">
+        {{ mensajeGuardado }}
+      </div>
+    }
+
+    <div class="grid-layout">
+
+      <!-- Panel Catálogo -->
+      <section class="card catalogo-card">
+        <div class="card-header">
+          <h2>📦 Catálogo de Productos</h2>
+          <button class="btn btn-sm" (click)="cargarCatalogo()" [disabled]="cargandoCatalogo">
+            @if (cargandoCatalogo) { ⏳ } @else { 🔄 }
+          </button>
+        </div>
+
+        @if (cargandoCatalogo) {
+          <div class="loading">
+            <div class="spinner"></div>
+            <p>Cargando catálogo...</p>
+          </div>
+        }
+
+        @if (errorCatalogo && !cargandoCatalogo) {
+          <div class="error-msg">
+            <span>❌ {{ errorCatalogo }}</span>
+          </div>
+        }
+
+        @if (!cargandoCatalogo && productos.length > 0) {
+          <div class="product-list">
+            @for (producto of productos; track producto.id) {
+              <div class="product-item" [class.selected]="productoSeleccionado === producto.producto"
+                   (click)="productoSeleccionado = producto.producto">
+                <div class="product-info">
+                  <span class="product-name">{{ producto.producto }}</span>
+                  <span class="product-categoria">{{ producto.categoria }}</span>
+                </div>
+                <div class="product-precio">{{ formatearPrecio(producto.precio) }}</div>
+              </div>
+            }
+          </div>
+        }
+
+        @if (!cargandoCatalogo && productos.length === 0 && !errorCatalogo) {
+          <p class="empty-msg">No hay productos disponibles.</p>
+        }
+
+        <!-- Cache notice -->
+        <div class="cache-notice">
+          <small>
+            @if (online) {
+              ✅ Datos en tiempo real
+            } @else {
+              📁 Mostrando desde caché (Service Worker)
+            }
+          </small>
+        </div>
+      </section>
+
+      <!-- Panel Registrar Pedido -->
+      <section class="card pedido-card">
+        <div class="card-header">
+          <h2>📝 Registrar Pedido</h2>
+        </div>
+
+        <div class="form-group">
+          <label for="productoSel">Producto seleccionado</label>
+          <input id="productoSel" type="text" class="form-control"
+                 [(ngModel)]="productoSeleccionado"
+                 placeholder="Selecciona del catálogo o escribe aquí..." />
+        </div>
+
+        <div class="form-group">
+          <label for="cantidadInput">Cantidad</label>
+          <input id="cantidadInput" type="number" class="form-control"
+                 [(ngModel)]="cantidad" min="1" max="999" />
+        </div>
+
+        <div class="form-group">
+          <label for="mensajeInput">Mensaje del vendedor</label>
+          <textarea id="mensajeInput" class="form-control textarea"
+                    [(ngModel)]="mensajeVendedor"
+                    placeholder="Escribe un mensaje o nota adicional..."></textarea>
+        </div>
+
+        <div class="estado-pedido">
+          @if (online) {
+            <div class="badge badge-online">🌐 Se enviará al servidor</div>
+          } @else {
+            <div class="badge badge-offline">💾 Se guardará en IndexedDB</div>
+          }
+        </div>
+
+        <button class="btn btn-primary" (click)="guardarPedido()">
+          @if (online) {
+            📤 Enviar Pedido
+          } @else {
+            💾 Guardar Localmente
+          }
+        </button>
+      </section>
+
+    </div>
+
+    <!-- Panel Pedidos Pendientes (IndexedDB) -->
+    <section class="card pedidos-pendientes-card">
+      <div class="card-header clickable" (click)="togglePedidos()">
+        <h2>📋 Pedidos Guardados Localmente (IndexedDB)</h2>
+        <div class="badge-count">{{ pedidosGuardados.length }}</div>
+        <span class="toggle-icon">{{ mostrarPedidos ? '▲' : '▼' }}</span>
+      </div>
+
+      @if (mostrarPedidos) {
+        @if (pedidosGuardados.length === 0) {
+          <div class="empty-pedidos">
+            <p>No hay pedidos pendientes en IndexedDB.</p>
+            <small>Los pedidos guardados offline aparecerán aquí.</small>
+          </div>
+        } @else {
+          <div class="pedidos-list">
+            @for (pedido of pedidosGuardados; track pedido.id) {
+              <div class="pedido-item">
+                <div class="pedido-header">
+                  <strong>{{ pedido.producto }}</strong>
+                  <span class="pedido-estado pendiente">{{ pedido.estado }}</span>
+                </div>
+                <div class="pedido-details">
+                  <span>Cantidad: {{ pedido.cantidad }}</span>
+                  <span>Fecha: {{ pedido.fecha | date:'short' }}</span>
+                </div>
+                @if (pedido.mensaje) {
+                  <p class="pedido-mensaje">💬 {{ pedido.mensaje }}</p>
+                }
+              </div>
+            }
+          </div>
+        }
+      }
+    </section>
+
+    <!-- Panel Informativo -->
+    <section class="card info-card">
+      <h2>🏗️ Arquitectura PWA</h2>
+      <div class="arch-grid">
+        <div class="arch-item">
+          <div class="arch-icon">📄</div>
+          <div class="arch-label">App Manifest</div>
+          <div class="arch-desc">Identidad e instalación</div>
+          <div class="arch-status active">✅ Configurado</div>
+        </div>
+        <div class="arch-item">
+          <div class="arch-icon">⚙️</div>
+          <div class="arch-label">Service Worker</div>
+          <div class="arch-desc">Caché y red</div>
+          <div class="arch-status active">✅ Activo (prod)</div>
+        </div>
+        <div class="arch-item">
+          <div class="arch-icon">🗄️</div>
+          <div class="arch-label">IndexedDB</div>
+          <div class="arch-desc">Persistencia local</div>
+          <div class="arch-status active">✅ backusVentasDB</div>
+        </div>
+        <div class="arch-item">
+          <div class="arch-icon">📦</div>
+          <div class="arch-label">Cache Storage</div>
+          <div class="arch-desc">Recursos offline</div>
+          <div class="arch-status active">✅ catalogo.json</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>SENATI – Taller PWA – App Manifest | Instructor: Luque Chambi Jorge</p>
+    <p>Backus Ventas PWA &copy; 2024 – Datos con fines educativos</p>
+  </footer>
+
+</div>
+
+<router-outlet />
