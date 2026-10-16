@@ -275,6 +275,7 @@ export class AppComponent implements OnInit, OnDestroy {
       await this.cargarPedidos();
       this.vaciarCarrito();
       this.notasPedido = '';
+      this.tabActiva = 'pedidos'; // Redirigir automáticamente a la pestaña IndexedDB para visualizar el pedido persistido
 
       // Regla BV-06: Mensaje claro y honesto (sin falsas afirmaciones de servidor)
       if (this.isOnline) {
@@ -283,6 +284,7 @@ export class AppComponent implements OnInit, OnDestroy {
         this.lanzarToast('Modo Offline: Pedido guardado en IndexedDB [PENDIENTE]. Se mantendrá seguro hasta reconexión.', 'alerta');
       }
     } catch (err) {
+      console.error('Error al persistir el pedido en IndexedDB:', err);
       // Regla BV-07: Error de IndexedDB informado sin falso éxito
       this.lanzarToast('Error al persistir el pedido en IndexedDB. No se guardaron cambios.', 'error');
     }
@@ -351,6 +353,49 @@ export class AppComponent implements OnInit, OnDestroy {
   // Formato #00124 mostrado en el wireframe de la página 10 del PDF
   formatearId(id?: number): string {
     return id ? '#' + id.toString().padStart(5, '0') : '#00000';
+  }
+
+  // Creación de Pedido de Demostración para evaluación de IndexedDB
+  async crearPedidoPrueba(): Promise<void> {
+    const pedidoDemo: Omit<Pedido, 'id'> = {
+      fecha: new Date().toISOString(),
+      cliente: 'Bodega San Martín (Demo Exposición)',
+      lineas: [
+        {
+          productoId: 1,
+          producto: 'Cusqueña Dorada 330ml',
+          precioUnitario: 9.50,
+          cantidad: 2,
+          subtotal: 19.00,
+          volumen: '330 ml',
+          imagen: 'assets/images/products/cusquena-dorada.svg'
+        },
+        {
+          productoId: 2,
+          producto: 'Pilsen Callao 310ml',
+          precioUnitario: 8.50,
+          cantidad: 3,
+          subtotal: 25.50,
+          volumen: '310 ml',
+          imagen: 'assets/images/products/pilsen-callao.svg'
+        }
+      ],
+      total: 44.50,
+      estado: 'PENDIENTE',
+      origen: this.isOnline ? 'ONLINE' : 'OFFLINE',
+      mensaje: 'Pedido de demostración para evaluación docente en IndexedDB',
+      metodoPago: 'Efectivo contra entrega'
+    };
+
+    try {
+      const id = await this.storageService.guardarPedido(pedidoDemo);
+      await this.cargarPedidos();
+      this.tabActiva = 'pedidos';
+      this.lanzarToast(`¡Pedido #${id.toString().padStart(5, '0')} guardado en IndexedDB con éxito!`, 'exito');
+    } catch (err) {
+      console.error('Error al guardar pedido de prueba en IndexedDB:', err);
+      this.lanzarToast('Error al persistir el pedido en IndexedDB.', 'error');
+    }
   }
 
   // --- Toggle de Simulación de Red ---

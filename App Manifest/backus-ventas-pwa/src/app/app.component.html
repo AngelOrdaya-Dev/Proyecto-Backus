@@ -549,6 +549,13 @@
             }
 
             @if (pedidosGuardados.length > 0) {
+              <button class="btn-demo-outline" (click)="crearPedidoPrueba()" title="Insertar orden de prueba para evaluación">
+                <svg class="svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span>+ Pedido Demo</span>
+              </button>
               <button class="btn-danger-outline" (click)="limpiarTodosPedidos()">
                 <svg class="svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="3 6 5 6 21 6"/>
@@ -561,6 +568,29 @@
         </div>
 
         @if (pedidosGuardados.length === 0) {
+          @if (carrito.length > 0) {
+            <div class="cart-pending-box">
+              <div class="cart-pending-content">
+                <div class="cart-pending-title">
+                  <svg class="svg-inline text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                  </svg>
+                  <span>Tienes {{ totalItemsCarrito }} producto(s) en tu Pedido Activo (Total: {{ formatearPrecio(totalCarrito) }})</span>
+                </div>
+                <p>El pedido está en el carrito. Para guardarlo en IndexedDB, confirma a continuación o desde la pestaña "Pedido Activo":</p>
+              </div>
+              <div class="cart-pending-actions">
+                <button class="btn-primary-gold" (click)="procesarPedido()">
+                  Guardar Pedido del Carrito en IndexedDB
+                </button>
+                <button class="btn-secondary-link" (click)="tabActiva = 'carrito'">
+                  Revisar Detalles del Carrito
+                </button>
+              </div>
+            </div>
+          }
+
           <div class="state-placeholder">
             <div class="placeholder-icon-box">
               <svg class="svg-placeholder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -568,8 +598,19 @@
               </svg>
             </div>
             <h3>No hay pedidos registrados en IndexedDB</h3>
-            <p>Los pedidos realizados sin conexión o guardados se resguardarán en esta base de datos local.</p>
-            <button class="btn-primary-gold" (click)="tabActiva = 'catalogo'">Crear Pedido de Prueba</button>
+            <p>Los pedidos realizados sin conexión o confirmados se resguardarán en la base de datos local <code>backusVentasDB</code> (almacén <code>pedidos</code>).</p>
+            <div class="placeholder-actions">
+              <button class="btn-primary-gold" (click)="crearPedidoPrueba()">
+                <svg class="svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span>Crear Pedido de Demostración</span>
+              </button>
+              <button class="btn-outline-gold" (click)="tabActiva = 'catalogo'">
+                <span>Ir al Catálogo de Productos</span>
+              </button>
+            </div>
           </div>
         } @else {
           <div class="orders-cards-list">

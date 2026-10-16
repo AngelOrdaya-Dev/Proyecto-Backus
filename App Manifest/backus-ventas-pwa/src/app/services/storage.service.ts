@@ -34,7 +34,12 @@ export class StorageService {
 
   async abrirDB(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, 2);
+      if (typeof window === 'undefined' || !window.indexedDB) {
+        reject(new Error('IndexedDB no está disponible en este navegador.'));
+        return;
+      }
+
+      const request = indexedDB.open(this.dbName, 3);
 
       request.onupgradeneeded = () => {
         const db = request.result;
@@ -47,7 +52,13 @@ export class StorageService {
       };
 
       request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
+      request.onerror = () => {
+        console.error('Error al abrir IndexedDB:', request.error);
+        reject(request.error);
+      };
+      request.onblocked = () => {
+        console.warn('IndexedDB bloqueada por otra pestaña abierta.');
+      };
     });
   }
 
