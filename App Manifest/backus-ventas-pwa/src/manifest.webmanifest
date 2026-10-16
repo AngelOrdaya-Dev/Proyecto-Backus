@@ -1,11 +1,13 @@
 {
-  "name": "Backus Ventas PWA",
-  "short_name": "Backus",
-  "theme_color": "#0033a0",
-  "background_color": "#ffffff",
+  "name": "Backus Ventas B2B Móvil",
+  "short_name": "Backus PWA",
+  "description": "Catálogo digital oficial y sistema de pedidos offline Backus",
+  "theme_color": "#061838",
+  "background_color": "#080f1e",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "scope": "./",
-  "start_url": "/",
+  "start_url": "./",
   "icons": [
     {
       "src": "assets/icons/icon-72x72.png",
@@ -55,5 +57,6 @@
       "type": "image/png",
       "purpose": "maskable any"
     }
-  ]
+  ],
+  "categories": ["business", "shopping", "productivity"]
 }

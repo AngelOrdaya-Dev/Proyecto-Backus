@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 320" width="100%" height="100%">
+  <defs>
+    <linearGradient id="waterGlass" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0284c7" />
+      <stop offset="35%" stop-color="#38bdf8" />
+      <stop offset="50%" stop-color="#e0f2fe" />
+      <stop offset="70%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#0369a1" />
+    </linearGradient>
+    <filter id="waterGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#38bdf8" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#waterGlow)">
+    <rect x="71" y="24" width="18" height="12" rx="2" fill="#0284c7" stroke="#ffffff" stroke-width="0.75" />
+    <!-- Pure Water Bottle -->
+    <path d="M72 36 L72 80 Q72 105 50 125 L50 270 Q50 285 65 290 L95 290 Q110 285 110 270 L110 125 Q88 105 88 80 L88 36 Z" fill="url(#waterGlass)" stroke="#bae6fd" stroke-width="0.6" />
+
+    <path d="M56 135 L56 265 Q56 275 66 280 L62 280 Q52 275 52 265 L52 135 Q64 115 74 95 L76 95 Q66 115 56 135 Z" fill="#ffffff" opacity="0.4" />
+
+    <!-- Pure Cyan Sky Label -->
+    <rect x="52" y="148" width="56" height="82" rx="4" fill="#0369a1" stroke="#38bdf8" stroke-width="1.8" />
+    <!-- Mountain Peaks Vector -->
+    <polygon points="62,176 72,162 82,176" fill="#e0f2fe" opacity="0.9" />
+    <polygon points="76,176 86,158 98,176" fill="#ffffff" />
+    <polygon points="82,176 90,166 98,176" fill="#bae6fd" />
+
+    <text x="80" y="193" font-size="7.2" font-weight="900" fill="#ffffff" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" letter-spacing="0.5">SAN MATEO</text>
+    <text x="80" y="201" font-size="4" font-weight="700" fill="#7dd3fc" text-anchor="middle" font-family="sans-serif">AGUA DE MANANTIAL</text>
+
+    <line x1="58" y1="206" x2="102" y2="206" stroke="#0ea5e9" stroke-width="1" />
+    <text x="80" y="215" font-size="3.5" font-weight="600" fill="#e0f2fe" text-anchor="middle" font-family="sans-serif">ENVASADA A 3,300 MSNM</text>
+    <text x="80" y="223" font-size="3.2" font-weight="700" fill="#bae6fd" text-anchor="middle" font-family="sans-serif">600 ml • 100% PURA</text>
+
+    <ellipse cx="80" cy="302" rx="35" ry="6" fill="#000000" opacity="0.5" />
+  </g>
+</svg>

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 320" width="100%" height="100%">
+  <defs>
+    <linearGradient id="ultraGlass" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1e3a8a" />
+      <stop offset="35%" stop-color="#3b82f6" />
+      <stop offset="50%" stop-color="#93c5fd" />
+      <stop offset="70%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#172554" />
+    </linearGradient>
+    <filter id="ultraGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#3b82f6" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#ultraGlow)">
+    <rect x="72" y="24" width="16" height="12" rx="2" fill="#1e3a8a" stroke="#ffffff" stroke-width="0.75" />
+    <!-- Slim Bottle Silhouette -->
+    <path d="M73 36 L73 90 Q73 115 54 135 L54 270 Q54 285 66 290 L94 290 Q106 285 106 270 L106 135 Q87 115 87 90 L87 36 Z" fill="url(#ultraGlass)" stroke="#bfdbfe" stroke-width="0.6" />
+
+    <path d="M58 145 L58 265 Q58 275 66 280 L62 280 Q56 275 56 265 L56 145 Q64 125 74 105 L76 105 Q66 125 58 145 Z" fill="#ffffff" opacity="0.3" />
+
+    <!-- Pure White Minimalist Label with Red Ribbon -->
+    <rect x="56" y="152" width="48" height="78" rx="3" fill="#ffffff" stroke="#1d4ed8" stroke-width="1.2" />
+    <!-- Red Ribbon -->
+    <path d="M56 160 L104 160 L104 165 L56 165 Z" fill="#dc2626" />
+
+    <text x="80" y="180" font-size="5.5" font-weight="900" fill="#1e3a8a" text-anchor="middle" font-family="'Times New Roman', serif" letter-spacing="0.5">Michelob</text>
+    <text x="80" y="193" font-size="7.5" font-weight="900" fill="#dc2626" text-anchor="middle" font-family="'Arial Black', sans-serif" letter-spacing="1">ULTRA</text>
+
+    <line x1="62" y1="198" x2="98" y2="198" stroke="#93c5fd" stroke-width="0.75" />
+    <text x="80" y="208" font-size="4" font-weight="800" fill="#1e3a8a" text-anchor="middle" font-family="sans-serif">95 CALORIAS</text>
+    <text x="80" y="215" font-size="3.5" font-weight="700" fill="#64748b" text-anchor="middle" font-family="sans-serif">2.6G CARBOHIDRATOS</text>
+    <text x="80" y="223" font-size="3.2" font-weight="700" fill="#1d4ed8" text-anchor="middle" font-family="sans-serif">355 ml • 4.2% VOL</text>
+
+    <ellipse cx="80" cy="302" rx="32" ry="6" fill="#000000" opacity="0.5" />
+  </g>
+</svg>

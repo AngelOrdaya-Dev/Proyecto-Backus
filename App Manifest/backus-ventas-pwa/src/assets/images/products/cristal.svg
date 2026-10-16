@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 320" width="100%" height="100%">
+  <defs>
+    <linearGradient id="cristalGlass" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#451a03" />
+      <stop offset="35%" stop-color="#92400e" />
+      <stop offset="50%" stop-color="#d97706" />
+      <stop offset="70%" stop-color="#b45309" />
+      <stop offset="100%" stop-color="#301103" />
+    </linearGradient>
+    <linearGradient id="cristalYellow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fde047" />
+      <stop offset="100%" stop-color="#eab308" />
+    </linearGradient>
+    <filter id="cristalGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#f59e0b" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#cristalGlow)">
+    <!-- Cap -->
+    <rect x="71" y="22" width="18" height="12" rx="2" fill="#eab308" stroke="#ffffff" stroke-width="0.75" />
+
+    <!-- Bottle Body -->
+    <path d="M72 34 L72 85 Q72 110 50 135 L50 270 Q50 285 65 290 L95 290 Q110 285 110 270 L110 135 Q88 110 88 85 L88 34 Z" fill="url(#cristalGlass)" stroke="#fcd34d" stroke-width="0.6" />
+
+    <!-- Neck Label -->
+    <rect x="68" y="72" width="24" height="13" rx="2" fill="#b91c1c" />
+    <text x="80" y="81" font-size="5" font-weight="900" fill="#ffffff" text-anchor="middle" font-family="sans-serif">CRISTAL</text>
+
+    <!-- Glass Reflection -->
+    <path d="M56 145 L56 265 Q56 275 66 280 L62 280 Q52 275 52 265 L52 145 Q64 125 74 100 L76 100 Q66 125 56 145 Z" fill="#ffffff" opacity="0.22" />
+
+    <!-- Yellow Main Label -->
+    <rect x="54" y="152" width="52" height="80" rx="4" fill="url(#cristalYellow)" stroke="#b91c1c" stroke-width="2" />
+
+    <!-- Red Banner -->
+    <polygon points="52,185 108,175 108,193 52,203" fill="#b91c1c" />
+    <text x="80" y="193" font-size="9" font-weight="900" fill="#ffffff" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-style="italic" letter-spacing="0.5">CRISTAL</text>
+
+    <text x="80" y="168" font-size="4.2" font-weight="800" fill="#0f172a" text-anchor="middle" font-family="sans-serif">LA DE TODOS</text>
+
+    <!-- 3 Stars -->
+    <g fill="#1e3a8a">
+      <circle cx="72" cy="214" r="1.5" />
+      <circle cx="80" cy="214" r="1.8" />
+      <circle cx="88" cy="214" r="1.5" />
+    </g>
+
+    <text x="80" y="224" font-size="3.5" font-weight="800" fill="#1e3a8a" text-anchor="middle" font-family="sans-serif">CERVEZA EXTRA</text>
+    <text x="80" y="229" font-size="3.2" font-weight="700" fill="#475569" text-anchor="middle" font-family="sans-serif">650 ml • 5.0% VOL</text>
+
+    <!-- Base Shadow -->
+    <ellipse cx="80" cy="302" rx="35" ry="6" fill="#000000" opacity="0.5" />
+  </g>
+</svg>

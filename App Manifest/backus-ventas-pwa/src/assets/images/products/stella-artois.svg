@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 320" width="100%" height="100%">
+  <defs>
+    <linearGradient id="stellaGlass" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#064e3b" />
+      <stop offset="35%" stop-color="#059669" />
+      <stop offset="50%" stop-color="#34d399" />
+      <stop offset="70%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#022c22" />
+    </linearGradient>
+    <filter id="stellaGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#dc2626" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#stellaGlow)">
+    <rect x="71" y="24" width="18" height="12" rx="2" fill="#ca8a04" stroke="#ffffff" stroke-width="0.75" />
+    <path d="M72 36 L72 85 Q72 110 50 135 L50 270 Q50 285 65 290 L95 290 Q110 285 110 270 L110 135 Q88 110 88 85 L88 36 Z" fill="url(#stellaGlass)" stroke="#6ee7b7" stroke-width="0.6" />
+
+    <!-- Gold Foil Neck -->
+    <path d="M72 36 L72 75 Q72 85 70 92 L90 92 Q88 85 88 75 L88 36 Z" fill="#eab308" />
+
+    <path d="M56 145 L56 265 Q56 275 66 280 L62 280 Q52 275 52 265 L52 145 Q64 125 74 100 L76 100 Q66 125 56 145 Z" fill="#ffffff" opacity="0.25" />
+
+    <!-- Oval Cartouche Label -->
+    <rect x="54" y="152" width="52" height="78" rx="10" fill="#ffffff" stroke="#b91c1c" stroke-width="2" />
+    <!-- Red Crest / Horn -->
+    <circle cx="80" cy="168" r="6" fill="#b91c1c" />
+    <text x="80" y="171" font-size="6" fill="#ffffff" text-anchor="middle">★</text>
+
+    <text x="80" y="188" font-size="7.5" font-weight="900" fill="#b91c1c" text-anchor="middle" font-family="'Times New Roman', serif" letter-spacing="0.5">STELLA</text>
+    <text x="80" y="196" font-size="6.8" font-weight="900" fill="#0f172a" text-anchor="middle" font-family="'Times New Roman', serif" letter-spacing="0.5">ARTOIS</text>
+
+    <line x1="62" y1="202" x2="98" y2="202" stroke="#eab308" stroke-width="1" />
+    <text x="80" y="212" font-size="3.5" font-weight="700" fill="#64748b" text-anchor="middle" font-family="sans-serif">ANNO 1366</text>
+    <text x="80" y="220" font-size="3.2" font-weight="700" fill="#b91c1c" text-anchor="middle" font-family="sans-serif">330 ml • 5.0% VOL</text>
+
+    <ellipse cx="80" cy="302" rx="35" ry="6" fill="#000000" opacity="0.5" />
+  </g>
+</svg>

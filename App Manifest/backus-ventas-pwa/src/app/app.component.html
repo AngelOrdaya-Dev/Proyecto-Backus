@@ -1,220 +1,792 @@
-<div class="app-wrapper">
+<div class="pwa-container">
 
-  <!-- Header -->
-  <header class="header">
+  <!-- ================= TOP HEADER ================= -->
+  <header class="app-header">
     <div class="header-inner">
-      <div class="brand">
-        <div class="brand-icon">🍺</div>
-        <div class="brand-text">
-          <h1>Backus Ventas PWA</h1>
-          <span class="brand-sub">Sistema de Ventas Móvil</span>
+      <div class="brand-group">
+        <div class="brand-logo-badge">
+          <!-- Backus Crown SVG Icon -->
+          <svg class="svg-icon crown-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z" fill="#061838" stroke="#061838" stroke-linejoin="round" />
+            <circle cx="12" cy="4" r="1.5" fill="#fef08a" />
+            <circle cx="2" cy="4" r="1.5" fill="#fef08a" />
+            <circle cx="22" cy="4" r="1.5" fill="#fef08a" />
+          </svg>
+        </div>
+        <div class="brand-titles">
+          <div class="brand-main">
+            <span class="brand-title">BACKUS</span>
+            <span class="brand-badge-b2b">B2B MÓVIL</span>
+          </div>
+          <span class="brand-subtitle">Catálogo Digital Oficial & Gestión Offline PWA</span>
         </div>
       </div>
 
-      @if (online) {
-        <div class="estado conectado">
-          <span class="dot"></span> CONECTADO
+      <div class="header-actions">
+        <!-- Live Connection Status -->
+        <div class="status-indicator" [class.is-online]="isOnline" [class.is-offline]="!isOnline">
+          <span class="pulse-dot"></span>
+          <span class="status-text">{{ isOnline ? 'EN LÍNEA' : 'OFFLINE' }}</span>
         </div>
-      } @else {
-        <div class="estado desconectado">
-          <span class="dot"></span> SIN CONEXIÓN
-        </div>
-      }
+
+        <!-- Offline Simulator Button for Professor Presentation -->
+        <button class="btn-tool sim-tool" (click)="toggleSimuladorOffline()"
+                [title]="simularOffline ? 'Restaurar conexión real' : 'Simular corte de conexión para demostración'">
+          <!-- Lightning / Power SVG -->
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="currentColor" />
+          </svg>
+          <span class="label">{{ simularOffline ? 'Sim: Offline ON' : 'Simular Offline' }}</span>
+        </button>
+
+        <!-- PWA Install Button -->
+        @if (deferredPrompt && !appInstalada) {
+          <button class="btn-tool install-tool" (click)="instalarPWA()">
+            <!-- Smartphone Install SVG -->
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+              <line x1="12" y1="18" x2="12.01" y2="18"/>
+              <polyline points="9 9 12 12 15 9"/>
+            </svg>
+            <span class="label">Instalar App</span>
+          </button>
+        }
+
+        <!-- Cart Quick Button -->
+        <button class="cart-quick-btn" (click)="tabActiva = 'carrito'" [class.has-items]="totalItemsCarrito > 0">
+          <!-- Shopping Cart SVG -->
+          <svg class="svg-icon cart-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="9" cy="21" r="1"/>
+            <circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+          </svg>
+          @if (totalItemsCarrito > 0) {
+            <span class="cart-counter-bubble">{{ totalItemsCarrito }}</span>
+          }
+        </button>
+      </div>
     </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="tabs-nav">
+      <button class="tab-btn" [class.active]="tabActiva === 'catalogo'" (click)="tabActiva = 'catalogo'">
+        <!-- Bottle / Catalog SVG -->
+        <svg class="tab-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 2h6v4H9z" />
+          <path d="M10 6v3a4 4 0 0 1-2 3.5V20a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-7.5a4 4 0 0 1-2-3.5V6" />
+        </svg>
+        <span class="tab-text">Catálogo Backus</span>
+      </button>
+
+      <button class="tab-btn" [class.active]="tabActiva === 'carrito'" (click)="tabActiva = 'carrito'">
+        <!-- Clipboard / Order SVG -->
+        <svg class="tab-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+          <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+          <path d="M9 12h6"/>
+          <path d="M9 16h6"/>
+        </svg>
+        <span class="tab-text">Pedido Activo</span>
+        @if (totalItemsCarrito > 0) {
+          <span class="tab-badge">{{ totalItemsCarrito }}</span>
+        }
+      </button>
+
+      <button class="tab-btn" [class.active]="tabActiva === 'pedidos'" (click)="tabActiva = 'pedidos'">
+        <!-- Database SVG -->
+        <svg class="tab-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <ellipse cx="12" cy="5" rx="9" ry="3"/>
+          <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+          <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+        </svg>
+        <span class="tab-text">IndexedDB Local</span>
+        @if (pedidosPendientesCount > 0) {
+          <span class="tab-badge badge-warning">{{ pedidosPendientesCount }}</span>
+        }
+      </button>
+
+      <button class="tab-btn" [class.active]="tabActiva === 'diagnostico'" (click)="tabActiva = 'diagnostico'">
+        <!-- Settings Cog SVG -->
+        <svg class="tab-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        <span class="tab-text">Diagnóstico PWA</span>
+      </button>
+    </nav>
   </header>
 
-  <main class="main-content">
+  <!-- ================= TOAST NOTIFICATION ================= -->
+  @if (toastMensaje) {
+    <div class="toast-banner" [class]="'toast-' + toastTipo">
+      <span class="toast-icon">
+        @if (toastTipo === 'exito') {
+          <svg class="svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        } @else if (toastTipo === 'alerta') {
+          <svg class="svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        } @else if (toastTipo === 'error') {
+          <svg class="svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/>
+            <line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+        } @else {
+          <svg class="svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+        }
+      </span>
+      <span class="toast-text">{{ toastMensaje }}</span>
+    </div>
+  }
 
-    <!-- Alert de estado de conexión -->
-    @if (!online) {
-      <div class="alert alert-offline">
-        <span class="alert-icon">⚠️</span>
-        <div>
-          <strong>Modo Offline activo</strong>
-          <p>El catálogo se muestra desde caché. Los pedidos se guardarán localmente y se sincronizarán cuando haya conexión.</p>
+  <!-- ================= MAIN BODY ================= -->
+  <main class="main-body">
+
+    <!-- Offline Alert Notice Banner -->
+    @if (!isOnline) {
+      <div class="offline-hero-banner">
+        <div class="banner-icon-box">
+          <svg class="svg-banner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="1" y1="1" x2="23" y2="23"/>
+            <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/>
+            <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/>
+            <path d="M10.71 5.05A16 16 0 0 1 22.58 9"/>
+            <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/>
+            <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+            <line x1="12" y1="20" x2="12.01" y2="20"/>
+          </svg>
         </div>
+        <div class="banner-content">
+          <h4>Modo Offline Activo (Service Worker en funcionamiento)</h4>
+          <p>
+            El catálogo se carga desde <strong>Cache Storage</strong>. Puedes generar pedidos comerciales normalmente;
+            se resguardarán en la base de datos <strong>IndexedDB (backusVentasDB)</strong> y podrás sincronizarlos
+            al reconectar.
+          </p>
+        </div>
+        @if (simularOffline) {
+          <button class="btn-restore" (click)="toggleSimuladorOffline()">Restaurar Red</button>
+        }
       </div>
     }
 
-    <!-- Mensaje de feedback -->
-    @if (mensajeGuardado) {
-      <div class="feedback-toast" [class]="'toast-' + tipoMensaje">
-        {{ mensajeGuardado }}
-      </div>
-    }
+    <!-- ============================================== -->
+    <!-- TAB 1: CATÁLOGO BACKUS                        -->
+    <!-- ============================================== -->
+    @if (tabActiva === 'catalogo') {
+      <section class="catalog-section">
 
-    <div class="grid-layout">
+        <!-- Search and Filter Bar -->
+        <div class="filter-controls-card">
+          <div class="search-box">
+            <!-- Search SVG -->
+            <svg class="svg-inline search-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" [(ngModel)]="busqueda" (input)="filtrarProductos()"
+                   placeholder="Buscar por marca, presentación, estilo..." class="search-input" />
+            @if (busqueda) {
+              <button class="clear-search-btn" (click)="busqueda = ''; filtrarProductos()" title="Limpiar búsqueda">
+                <svg class="svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            }
+          </div>
 
-      <!-- Panel Catálogo -->
-      <section class="card catalogo-card">
-        <div class="card-header">
-          <h2>📦 Catálogo de Productos</h2>
-          <button class="btn btn-sm" (click)="cargarCatalogo()" [disabled]="cargandoCatalogo">
-            @if (cargandoCatalogo) { ⏳ } @else { 🔄 }
+          <div class="category-pills">
+            @for (cat of categorias; track cat) {
+              <button class="pill-btn" [class.active]="categoriaSeleccionada === cat"
+                      (click)="cambiarCategoria(cat)">
+                @if (cat === 'Todos') {
+                  <svg class="pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="2" y1="12" x2="22" y2="12"/>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                  </svg>
+                } @else if (cat === 'Cervezas') {
+                  <svg class="pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M7 2v20M17 2v20M7 6h10M7 18h10"/>
+                  </svg>
+                } @else if (cat === 'Artesanales') {
+                  <svg class="pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                } @else if (cat === 'Bebidas') {
+                  <svg class="pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                  </svg>
+                }
+                {{ cat }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Quick Summary Bar -->
+        <div class="catalog-status-bar">
+          <span class="count-badge">Mostrando {{ productosFiltrados.length }} productos</span>
+          <div class="cache-indicator">
+            <span class="dot-cache"></span>
+            <span>{{ isOnline ? 'Catálogo sincronizado' : 'Desde caché offline (Service Worker)' }}</span>
+          </div>
+          <button class="btn-refresh" (click)="cargarCatalogo()" [disabled]="cargandoCatalogo" title="Actualizar catálogo">
+            <svg class="svg-inline" [class.spinning]="cargandoCatalogo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 4 23 10 17 10"/>
+              <polyline points="1 20 1 14 7 14"/>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+            <span>{{ cargandoCatalogo ? 'Cargando...' : 'Refrescar' }}</span>
           </button>
         </div>
 
+        <!-- Products Grid -->
         @if (cargandoCatalogo) {
-          <div class="loading">
-            <div class="spinner"></div>
-            <p>Cargando catálogo...</p>
+          <div class="state-placeholder">
+            <div class="spinner-gold"></div>
+            <p>Descargando catálogo Backus...</p>
           </div>
         }
 
-        @if (errorCatalogo && !cargandoCatalogo) {
-          <div class="error-msg">
-            <span>❌ {{ errorCatalogo }}</span>
+        @if (!cargandoCatalogo && productosFiltrados.length === 0) {
+          <div class="state-placeholder">
+            <div class="placeholder-icon-box">
+              <svg class="svg-placeholder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </div>
+            <h3>No se encontraron productos</h3>
+            <p>Prueba con otros términos de búsqueda o selecciona otra categoría.</p>
           </div>
         }
 
-        @if (!cargandoCatalogo && productos.length > 0) {
-          <div class="product-list">
-            @for (producto of productos; track producto.id) {
-              <div class="product-item" [class.selected]="productoSeleccionado === producto.producto"
-                   (click)="productoSeleccionado = producto.producto">
-                <div class="product-info">
-                  <span class="product-name">{{ producto.producto }}</span>
-                  <span class="product-categoria">{{ producto.categoria }}</span>
+        @if (!cargandoCatalogo && productosFiltrados.length > 0) {
+          <div class="products-grid">
+            @for (prod of productosFiltrados; track prod.id) {
+              <div class="product-card" [style.--accent-color]="prod.color || '#eab308'">
+                <div class="card-visual">
+                  <div class="visual-glow"></div>
+                  <!-- Authentic Product Image Vector -->
+                  <div class="product-img-wrapper">
+                    @if (prod.imagen) {
+                      <img [src]="prod.imagen" [alt]="prod.producto" class="product-bottle-img" loading="lazy" />
+                    } @else {
+                      <svg class="product-bottle-fallback" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M9 2h6v4H9z" />
+                        <path d="M10 6v3a4 4 0 0 1-2 3.5V20a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-7.5a4 4 0 0 1-2-3.5V6" />
+                      </svg>
+                    }
+                  </div>
+
+                  @if (prod.badge) {
+                    <span class="card-tag">{{ prod.badge }}</span>
+                  }
+                  <span class="vol-tag">{{ prod.volumen }}</span>
                 </div>
-                <div class="product-precio">{{ formatearPrecio(producto.precio) }}</div>
+
+                <div class="card-content">
+                  <div class="meta-row">
+                    <span class="subcat-chip">{{ prod.subcategoria || prod.categoria }}</span>
+                    @if (prod.graduacion) {
+                      <span class="abv-chip">{{ prod.graduacion }}</span>
+                    }
+                  </div>
+
+                  <h3 class="product-title">{{ prod.producto }}</h3>
+                  <p class="product-desc">{{ prod.descripcion }}</p>
+
+                  <div class="price-action-row">
+                    <div class="price-block">
+                      <span class="currency">PEN</span>
+                      <span class="price-value">{{ formatearPrecio(prod.precio) }}</span>
+                    </div>
+
+                    <div class="quantity-stepper">
+                      <button class="btn-step" (click)="ajustarCantidadTemp(prod.id, -1)" title="Reducir">-</button>
+                      <span class="step-num">{{ cantidadesTemp[prod.id] || 1 }}</span>
+                      <button class="btn-step" (click)="ajustarCantidadTemp(prod.id, 1)" title="Aumentar">+</button>
+                    </div>
+                  </div>
+
+                  <button class="btn-add-cart" (click)="agregarAlCarrito(prod)">
+                    <svg class="btn-cart-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="12" y1="5" x2="12" y2="19"/>
+                      <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    <span>Agregar al Pedido</span>
+                  </button>
+                </div>
               </div>
             }
           </div>
         }
+      </section>
+    }
 
-        @if (!cargandoCatalogo && productos.length === 0 && !errorCatalogo) {
-          <p class="empty-msg">No hay productos disponibles.</p>
-        }
+    <!-- ============================================== -->
+    <!-- TAB 2: PEDIDO ACTIVO / CHECKOUT               -->
+    <!-- ============================================== -->
+    @if (tabActiva === 'carrito') {
+      <section class="checkout-section">
+        <div class="checkout-grid">
 
-        <!-- Cache notice -->
-        <div class="cache-notice">
-          <small>
-            @if (online) {
-              ✅ Datos en tiempo real
+          <!-- Left column: Order items -->
+          <div class="cart-items-panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <svg class="panel-header-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="9" cy="21" r="1"/>
+                  <circle cx="20" cy="21" r="1"/>
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                </svg>
+                <h2>Detalle del Pedido</h2>
+              </div>
+              @if (carrito.length > 0) {
+                <button class="btn-clear-cart" (click)="vaciarCarrito()">
+                  <svg class="svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                  <span>Vaciar pedido</span>
+                </button>
+              }
+            </div>
+
+            @if (carrito.length === 0) {
+              <div class="cart-empty-state">
+                <div class="empty-icon-box">
+                  <svg class="svg-empty-cart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="9" cy="21" r="1"/>
+                    <circle cx="20" cy="21" r="1"/>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                  </svg>
+                </div>
+                <h3>El pedido está vacío</h3>
+                <p>Explora el catálogo y añade cervezas y bebidas Backus para tu punto de venta.</p>
+                <button class="btn-primary-gold" (click)="tabActiva = 'catalogo'">Ir al Catálogo</button>
+              </div>
             } @else {
-              📁 Mostrando desde caché (Service Worker)
-            }
-          </small>
-        </div>
-      </section>
+              <div class="cart-items-list">
+                @for (item of carrito; track item.producto.id; let i = $index) {
+                  <div class="cart-item-row">
+                    <!-- Thumbnail of bottle -->
+                    <div class="item-thumb-box">
+                      @if (item.producto.imagen) {
+                        <img [src]="item.producto.imagen" [alt]="item.producto.producto" class="cart-thumb-img" />
+                      } @else {
+                        <svg class="cart-thumb-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M9 2h6v4H9z" />
+                          <path d="M10 6v3a4 4 0 0 1-2 3.5V20a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-7.5a4 4 0 0 1-2-3.5V6" />
+                        </svg>
+                      }
+                    </div>
 
-      <!-- Panel Registrar Pedido -->
-      <section class="card pedido-card">
-        <div class="card-header">
-          <h2>📝 Registrar Pedido</h2>
-        </div>
+                    <div class="item-details">
+                      <h4 class="item-name">{{ item.producto.producto }}</h4>
+                      <div class="item-specs">
+                        <span>{{ item.producto.volumen }}</span>
+                        <span>•</span>
+                        <span>{{ formatearPrecio(item.producto.precio) }} c/u</span>
+                      </div>
+                    </div>
 
-        <div class="form-group">
-          <label for="productoSel">Producto seleccionado</label>
-          <input id="productoSel" type="text" class="form-control"
-                 [(ngModel)]="productoSeleccionado"
-                 placeholder="Selecciona del catálogo o escribe aquí..." />
-        </div>
+                    <div class="item-stepper">
+                      <button class="btn-step-sm" (click)="modificarCantidadCarrito(i, -1)">-</button>
+                      <span class="step-val">{{ item.cantidad }}</span>
+                      <button class="btn-step-sm" (click)="modificarCantidadCarrito(i, 1)">+</button>
+                    </div>
 
-        <div class="form-group">
-          <label for="cantidadInput">Cantidad</label>
-          <input id="cantidadInput" type="number" class="form-control"
-                 [(ngModel)]="cantidad" min="1" max="999" />
-        </div>
+                    <div class="item-subtotal">
+                      {{ formatearPrecio(item.producto.precio * item.cantidad) }}
+                    </div>
 
-        <div class="form-group">
-          <label for="mensajeInput">Mensaje del vendedor</label>
-          <textarea id="mensajeInput" class="form-control textarea"
-                    [(ngModel)]="mensajeVendedor"
-                    placeholder="Escribe un mensaje o nota adicional..."></textarea>
-        </div>
-
-        <div class="estado-pedido">
-          @if (online) {
-            <div class="badge badge-online">🌐 Se enviará al servidor</div>
-          } @else {
-            <div class="badge badge-offline">💾 Se guardará en IndexedDB</div>
-          }
-        </div>
-
-        <button class="btn btn-primary" (click)="guardarPedido()">
-          @if (online) {
-            📤 Enviar Pedido
-          } @else {
-            💾 Guardar Localmente
-          }
-        </button>
-      </section>
-
-    </div>
-
-    <!-- Panel Pedidos Pendientes (IndexedDB) -->
-    <section class="card pedidos-pendientes-card">
-      <div class="card-header clickable" (click)="togglePedidos()">
-        <h2>📋 Pedidos Guardados Localmente (IndexedDB)</h2>
-        <div class="badge-count">{{ pedidosGuardados.length }}</div>
-        <span class="toggle-icon">{{ mostrarPedidos ? '▲' : '▼' }}</span>
-      </div>
-
-      @if (mostrarPedidos) {
-        @if (pedidosGuardados.length === 0) {
-          <div class="empty-pedidos">
-            <p>No hay pedidos pendientes en IndexedDB.</p>
-            <small>Los pedidos guardados offline aparecerán aquí.</small>
-          </div>
-        } @else {
-          <div class="pedidos-list">
-            @for (pedido of pedidosGuardados; track pedido.id) {
-              <div class="pedido-item">
-                <div class="pedido-header">
-                  <strong>{{ pedido.producto }}</strong>
-                  <span class="pedido-estado pendiente">{{ pedido.estado }}</span>
-                </div>
-                <div class="pedido-details">
-                  <span>Cantidad: {{ pedido.cantidad }}</span>
-                  <span>Fecha: {{ pedido.fecha | date:'short' }}</span>
-                </div>
-                @if (pedido.mensaje) {
-                  <p class="pedido-mensaje">💬 {{ pedido.mensaje }}</p>
+                    <button class="btn-remove" (click)="eliminarDelCarrito(i)" title="Quitar">
+                      <svg class="svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    </button>
+                  </div>
                 }
               </div>
             }
           </div>
-        }
-      }
-    </section>
 
-    <!-- Panel Informativo -->
-    <section class="card info-card">
-      <h2>🏗️ Arquitectura PWA</h2>
-      <div class="arch-grid">
-        <div class="arch-item">
-          <div class="arch-icon">📄</div>
-          <div class="arch-label">App Manifest</div>
-          <div class="arch-desc">Identidad e instalación</div>
-          <div class="arch-status active">✅ Configurado</div>
+          <!-- Right column: Customer and Checkout summary -->
+          <div class="order-summary-panel">
+            <div class="summary-card">
+              <div class="summary-card-header">
+                <svg class="summary-header-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10 9 9 9 8 9"/>
+                </svg>
+                <h3>Resumen de Despacho</h3>
+              </div>
+
+              <div class="form-field">
+                <label>Cliente / Bodega Comercial</label>
+                <input type="text" [(ngModel)]="clienteNombre" class="input-modern"
+                       placeholder="Nombre de la bodega o RUC..." />
+              </div>
+
+              <div class="form-field">
+                <label>Método de Pago</label>
+                <select [(ngModel)]="metodoPago" class="input-modern">
+                  <option value="Efectivo contra entrega">Efectivo contra entrega</option>
+                  <option value="Transferencia BCP / BBVA">Transferencia BCP / BBVA</option>
+                  <option value="Yape / Plin">Yape / Plin</option>
+                  <option value="Crédito Backus Directo 15 días">Crédito Backus Directo 15 días</option>
+                </select>
+              </div>
+
+              <div class="form-field">
+                <label>Instrucciones de Entrega / Notas del Vendedor</label>
+                <textarea [(ngModel)]="notasPedido" rows="3" class="input-modern textarea"
+                          placeholder="Ej: Entregar por la mañana, dejar en almacén central..."></textarea>
+              </div>
+
+              <div class="pricing-breakdown">
+                <div class="price-row">
+                  <span>Subtotal sin IGV:</span>
+                  <span>{{ formatearPrecio(subtotalCarrito * 0.82) }}</span>
+                </div>
+                <div class="price-row">
+                  <span>IGV (18%):</span>
+                  <span>{{ formatearPrecio(subtotalCarrito * 0.18) }}</span>
+                </div>
+                <div class="price-row total-row">
+                  <span>Total a Pagar:</span>
+                  <span class="grand-total">{{ formatearPrecio(totalCarrito) }}</span>
+                </div>
+              </div>
+
+              <!-- Storage Target Badge -->
+              <div class="dispatch-target-badge" [class.badge-online-mode]="isOnline" [class.badge-offline-mode]="!isOnline">
+                @if (isOnline) {
+                  <svg class="svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="2" y1="12" x2="22" y2="12"/>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                  </svg>
+                  <span>Destino: Servidor Central Backus (Transmisión Inmediata)</span>
+                } @else {
+                  <svg class="svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                  </svg>
+                  <span>Destino: IndexedDB Local (Modo Offline Seguro)</span>
+                }
+              </div>
+
+              <!-- Action Button -->
+              <button class="btn-checkout" [disabled]="carrito.length === 0" (click)="procesarPedido()">
+                @if (isOnline) {
+                  <svg class="svg-inline checkout-btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"/>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                  </svg>
+                  <span>Confirmar y Emitir Pedido</span>
+                } @else {
+                  <svg class="svg-inline checkout-btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                  </svg>
+                  <span>Guardar Pedido en IndexedDB</span>
+                }
+              </button>
+            </div>
+          </div>
+
         </div>
-        <div class="arch-item">
-          <div class="arch-icon">⚙️</div>
-          <div class="arch-label">Service Worker</div>
-          <div class="arch-desc">Caché y red</div>
-          <div class="arch-status active">✅ Activo (prod)</div>
+      </section>
+    }
+
+    <!-- ============================================== -->
+    <!-- TAB 3: INDEXEDDB LOCAL ORDERS                 -->
+    <!-- ============================================== -->
+    @if (tabActiva === 'pedidos') {
+      <section class="orders-db-section">
+        <div class="orders-header-bar">
+          <div>
+            <div class="orders-title-group">
+              <svg class="orders-header-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+              </svg>
+              <h2>Pedidos Almacenados en IndexedDB</h2>
+            </div>
+            <p class="section-sub">Base de datos local del navegador: <code>backusVentasDB</code> (Almacén: <code>pedidos</code>)</p>
+          </div>
+
+          <div class="orders-header-actions">
+            @if (pedidosPendientesCount > 0) {
+              <button class="btn-sync-all" (click)="sincronizarPedidosPendientes()" [disabled]="sincronizando">
+                <svg class="svg-inline" [class.spinning]="sincronizando" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="23 4 23 10 17 10"/>
+                  <polyline points="1 20 1 14 7 14"/>
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                </svg>
+                <span>{{ sincronizando ? 'Sincronizando...' : 'Sincronizar ' + pedidosPendientesCount + ' pendientes' }}</span>
+              </button>
+            }
+
+            @if (pedidosGuardados.length > 0) {
+              <button class="btn-danger-outline" (click)="limpiarTodosPedidos()">
+                <svg class="svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+                <span>Limpiar Historial</span>
+              </button>
+            }
+          </div>
         </div>
-        <div class="arch-item">
-          <div class="arch-icon">🗄️</div>
-          <div class="arch-label">IndexedDB</div>
-          <div class="arch-desc">Persistencia local</div>
-          <div class="arch-status active">✅ backusVentasDB</div>
+
+        @if (pedidosGuardados.length === 0) {
+          <div class="state-placeholder">
+            <div class="placeholder-icon-box">
+              <svg class="svg-placeholder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+              </svg>
+            </div>
+            <h3>No hay pedidos registrados en IndexedDB</h3>
+            <p>Los pedidos realizados sin conexión o guardados se resguardarán en esta base de datos local.</p>
+            <button class="btn-primary-gold" (click)="tabActiva = 'catalogo'">Crear Pedido de Prueba</button>
+          </div>
+        } @else {
+          <div class="orders-cards-list">
+            @for (orden of pedidosGuardados; track orden.id) {
+              <div class="order-card" [class.order-pending]="orden.estado === 'pendiente'" [class.order-synced]="orden.estado === 'sincronizado'">
+                <div class="order-card-header">
+                  <div class="order-id-group">
+                    <span class="order-badge">ORD-#{{ orden.id }}</span>
+                    <span class="order-client">{{ orden.cliente || 'Bodega Registrada' }}</span>
+                  </div>
+
+                  <div class="order-status-pill" [class.pill-pending]="orden.estado === 'pendiente'" [class.pill-synced]="orden.estado === 'sincronizado'">
+                    @if (orden.estado === 'pendiente') {
+                      <svg class="svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                      </svg>
+                      <span>Pendiente de Sync</span>
+                    } @else {
+                      <svg class="svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                      <span>Sincronizado</span>
+                    }
+                  </div>
+                </div>
+
+                <div class="order-items-table">
+                  @for (it of orden.items; track it.producto) {
+                    <div class="order-table-row">
+                      <span class="it-qty">{{ it.cantidad }}x</span>
+                      <span class="it-name">{{ it.producto }} <small>({{ it.volumen }})</small></span>
+                      <span class="it-sub">{{ formatearPrecio(it.subtotal) }}</span>
+                    </div>
+                  }
+                </div>
+
+                @if (orden.mensaje) {
+                  <div class="order-note-bubble">
+                    <svg class="svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    <span><strong>Nota:</strong> {{ orden.mensaje }}</span>
+                  </div>
+                }
+
+                <div class="order-card-footer">
+                  <div class="order-date">
+                    <svg class="svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/>
+                      <line x1="8" y1="2" x2="8" y2="6"/>
+                      <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    <span>{{ orden.fecha | date:'medium' }}</span>
+                  </div>
+                  <div class="order-footer-right">
+                    <span class="total-label">Total:</span>
+                    <span class="total-amount">{{ formatearPrecio(orden.total) }}</span>
+                    <button class="btn-delete-item" (click)="eliminarPedido(orden.id)" title="Eliminar orden">
+                      <svg class="svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </section>
+    }
+
+    <!-- ============================================== -->
+    <!-- TAB 4: DIAGNÓSTICO & ARQUITECTURA PWA         -->
+    <!-- ============================================== -->
+    @if (tabActiva === 'diagnostico') {
+      <section class="diagnostic-section">
+        <div class="diag-header">
+          <h2>Auditoría y Arquitectura Técnica PWA</h2>
+          <p>Especificación de estándares y estado en tiempo de ejecución para evaluación académica.</p>
         </div>
-        <div class="arch-item">
-          <div class="arch-icon">📦</div>
-          <div class="arch-label">Cache Storage</div>
-          <div class="arch-desc">Recursos offline</div>
-          <div class="arch-status active">✅ catalogo.json</div>
+
+        <div class="diag-grid">
+          <!-- Card 1: App Manifest -->
+          <div class="diag-card">
+            <div class="diag-icon-box">
+              <svg class="diag-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10 9 9 9 8 9"/>
+              </svg>
+            </div>
+            <h3>Web App Manifest</h3>
+            <p class="diag-desc">Archivo <code>manifest.webmanifest</code> que define identidad, iconos y experiencia standalone.</p>
+            <ul class="diag-checklist">
+              <li><span class="check-mark">✓</span> <strong>Nombre:</strong> Backus Ventas PWA</li>
+              <li><span class="check-mark">✓</span> <strong>Short Name:</strong> Backus</li>
+              <li><span class="check-mark">✓</span> <strong>Display:</strong> Standalone (modo app nativa)</li>
+              <li><span class="check-mark">✓</span> <strong>Theme Color:</strong> #061838 (Navy Corporativo)</li>
+              <li><span class="check-mark">✓</span> <strong>Iconos:</strong> 8 resoluciones (72x72 hasta 512x512)</li>
+            </ul>
+          </div>
+
+          <!-- Card 2: Service Worker -->
+          <div class="diag-card">
+            <div class="diag-icon-box">
+              <svg class="diag-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </div>
+            <h3>Service Worker</h3>
+            <p class="diag-desc">Trabajador en segundo plano para interceptar peticiones de red y habilitar funcionamiento offline.</p>
+            <ul class="diag-checklist">
+              <li><span class="check-mark">✓</span> <strong>Tecnología:</strong> &#64;angular/service-worker (ngsw)</li>
+              <li><span class="check-mark">✓</span> <strong>Estrategia Assets:</strong> Performance (Cache-First)</li>
+              <li><span class="check-mark">✓</span> <strong>Estrategia API / Datos:</strong> Freshness con fallback a Cache</li>
+              <li><span class="check-mark">✓</span> <strong>Instalabilidad:</strong> Evento <code>beforeinstallprompt</code> capturado</li>
+            </ul>
+          </div>
+
+          <!-- Card 3: IndexedDB -->
+          <div class="diag-card">
+            <div class="diag-icon-box">
+              <svg class="diag-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+              </svg>
+            </div>
+            <h3>IndexedDB Local Storage</h3>
+            <p class="diag-desc">Base de datos transaccional NoSQL para persistir órdenes cuando no hay red disponible.</p>
+            <ul class="diag-checklist">
+              <li><span class="check-mark">✓</span> <strong>Database:</strong> backusVentasDB (v2)</li>
+              <li><span class="check-mark">✓</span> <strong>Object Store:</strong> pedidos (clave id autoincremental)</li>
+              <li><span class="check-mark">✓</span> <strong>Capacidad:</strong> Almacenamiento estructurado de pedidos</li>
+              <li><span class="check-mark">✓</span> <strong>Sincronización:</strong> Cola FIFO para envío a servidor</li>
+            </ul>
+          </div>
+
+          <!-- Card 4: Cache Storage API -->
+          <div class="diag-card">
+            <div class="diag-icon-box">
+              <svg class="diag-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="21 8 21 21 3 21 3 8"/>
+                <rect x="1" y="3" width="22" height="5"/>
+                <line x1="10" y1="12" x2="14" y2="12"/>
+              </svg>
+            </div>
+            <h3>Cache Storage API</h3>
+            <p class="diag-desc">Contenedor de caché para recursos estáticos y respuestas JSON de catálogo.</p>
+            <ul class="diag-checklist">
+              <li><span class="check-mark">✓</span> <strong>JSON Catálogo:</strong> <code>assets/data/catalogo.json</code></li>
+              <li><span class="check-mark">✓</span> <strong>Fuentes & CSS:</strong> Google Fonts y bundle compilado</li>
+              <li><span class="check-mark">✓</span> <strong>Resiliencia:</strong> Carga instantánea con o sin Wi-Fi</li>
+            </ul>
+          </div>
         </div>
-      </div>
-    </section>
+
+        <div class="diag-flow-box">
+          <div class="flow-box-header">
+            <svg class="svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 3 21 3 21 8"/>
+              <line x1="4" y1="20" x2="21" y2="3"/>
+              <polyline points="21 16 21 21 16 21"/>
+              <line x1="15" y1="15" x2="21" y2="21"/>
+              <line x1="4" y1="4" x2="9" y2="9"/>
+            </svg>
+            <h3>Flujo Operativo Offline-First Backus PWA</h3>
+          </div>
+          <div class="flow-steps">
+            <div class="flow-step">
+              <span class="step-badge">Paso 1</span>
+              <h4>Consulta Catálogo</h4>
+              <p>El SW busca en caché local primero; si hay red, actualiza en segundo plano.</p>
+            </div>
+            <div class="flow-step-arrow">➔</div>
+            <div class="flow-step">
+              <span class="step-badge">Paso 2</span>
+              <h4>Generación de Pedido</h4>
+              <p>El vendedor selecciona productos y arma el carrito en la bodega del cliente.</p>
+            </div>
+            <div class="flow-step-arrow">➔</div>
+            <div class="flow-step">
+              <span class="step-badge">Paso 3</span>
+              <h4>Persistencia Offline</h4>
+              <p>Si no hay cobertura, el pedido se resguarda en <strong>IndexedDB</strong>.</p>
+            </div>
+            <div class="flow-step-arrow">➔</div>
+            <div class="flow-step">
+              <span class="step-badge">Paso 4</span>
+              <h4>Sincronización Cloud</h4>
+              <p>Al reanudar conexión, los pedidos pendientes se sincronizan al ERP central.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    }
 
   </main>
 
-  <footer class="footer">
-    <p>SENATI – Taller PWA – App Manifest | Instructor: Luque Chambi Jorge</p>
-    <p>Backus Ventas PWA &copy; 2024 – Datos con fines educativos</p>
+  <!-- ================= FOOTER ================= -->
+  <footer class="app-footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <strong>Backus Ventas PWA &copy; 2024</strong>
+        <span>Unión de Cervecerías Peruanas Backus y Johnston S.A.A.</span>
+      </div>
+      <div class="footer-right">
+        <span>SENATI – Taller de Desarrollo PWA</span>
+        <span>Instructor: Luque Chambi Jorge</span>
+      </div>
+    </div>
   </footer>
 
 </div>

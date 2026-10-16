@@ -1,0 +1,10 @@
+{
+  "name": "app-manifest-backus-pwa-root",
+  "version": "1.0.0",
+  "description": "Acceso raíz para ejecutar Backus Ventas PWA",
+  "scripts": {
+    "start": "npm --prefix \"App Manifest/backus-ventas-pwa\" start",
+    "build": "npm --prefix \"App Manifest/backus-ventas-pwa\" run build",
+    "serve": "npx -y http-server \"App Manifest/backus-ventas-pwa/dist/backus-ventas-pwa/browser\" -p 8088 -c-1"
+  }
+}
