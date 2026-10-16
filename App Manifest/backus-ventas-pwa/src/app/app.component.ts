@@ -1,9 +1,9 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterOutlet } from '@angular/router';
 import { CatalogoService, Producto } from './services/catalogo.service';
-import { StorageService, PedidoRegistro, PedidoItem } from './services/storage.service';
+import { StorageService, Pedido, LineaPedido, EstadoPedido } from './services/storage.service';
 
 interface CartItem {
   producto: Producto;
@@ -50,7 +50,7 @@ export class AppComponent implements OnInit, OnDestroy {
   cantidadesTemp: { [id: number]: number } = {};
 
   // Pedidos guardados en IndexedDB
-  pedidosGuardados: PedidoRegistro[] = [];
+  pedidosGuardados: Pedido[] = [];
   sincronizando = false;
 
   // Feedback Toast
@@ -113,7 +113,7 @@ export class AppComponent implements OnInit, OnDestroy {
     if (this.toastTimer) clearTimeout(this.toastTimer);
   }
 
-  // --- Catálogo y Filtros ---
+  // --- Catálogo y Filtros (Reglas BV-01 y BV-02) ---
   cargarCatalogo(): void {
     this.cargandoCatalogo = true;
     this.errorCatalogo = '';
@@ -138,10 +138,12 @@ export class AppComponent implements OnInit, OnDestroy {
   filtrarProductos(): void {
     let lista = this.productos;
 
+    // Filtro por categoría combinable
     if (this.categoriaSeleccionada !== 'Todos') {
       lista = lista.filter(p => p.categoria.toLowerCase() === this.categoriaSeleccionada.toLowerCase());
     }
 
+    // Filtro por nombre sin distinguir mayúsculas/minúsculas (BV-01 y BV-02)
     if (this.busqueda.trim()) {
       const q = this.busqueda.toLowerCase().trim();
       lista = lista.filter(p =>
@@ -159,15 +161,23 @@ export class AppComponent implements OnInit, OnDestroy {
     this.filtrarProductos();
   }
 
+  // Regla BV-03: Cantidad entera positiva
   ajustarCantidadTemp(productoId: number, delta: number): void {
     const actual = this.cantidadesTemp[productoId] || 1;
-    const nueva = Math.max(1, Math.min(99, actual + delta));
+    const nueva = Math.max(1, Math.min(99, Math.floor(actual + delta)));
     this.cantidadesTemp[productoId] = nueva;
   }
 
   // --- Carrito de Compras ---
   agregarAlCarrito(producto: Producto): void {
-    const cantidad = this.cantidadesTemp[producto.id] || 1;
+    const cantidad = Math.floor(this.cantidadesTemp[producto.id] || 1);
+
+    // Validación BV-03: Solo enteros positivos
+    if (!Number.isInteger(cantidad) || cantidad <= 0) {
+      this.lanzarToast('Cantidad inválida. Debe ser un entero positivo mayor que cero.', 'alerta');
+      return;
+    }
+
     const existente = this.carrito.find(item => item.producto.id === producto.id);
 
     if (existente) {
@@ -186,9 +196,11 @@ export class AppComponent implements OnInit, OnDestroy {
 
   modificarCantidadCarrito(index: number, delta: number): void {
     const item = this.carrito[index];
-    item.cantidad += delta;
-    if (item.cantidad <= 0) {
+    const nuevaCantidad = item.cantidad + delta;
+    if (nuevaCantidad <= 0) {
       this.carrito.splice(index, 1);
+    } else {
+      item.cantidad = Math.floor(nuevaCantidad);
     }
   }
 
@@ -205,66 +217,74 @@ export class AppComponent implements OnInit, OnDestroy {
     return this.carrito.reduce((sum, item) => sum + item.cantidad, 0);
   }
 
+  // Regla BV-04: Subtotal = precio x cantidad con 2 decimales
   get subtotalCarrito(): number {
-    return this.carrito.reduce((sum, item) => sum + (item.producto.precio * item.cantidad), 0);
+    const sub = this.carrito.reduce((sum, item) => sum + (item.producto.precio * item.cantidad), 0);
+    return Number(sub.toFixed(2));
   }
 
   get igvCarrito(): number {
-    return this.subtotalCarrito * 0.18;
+    return Number((this.subtotalCarrito * 0.18).toFixed(2));
   }
 
   get totalCarrito(): number {
     return this.subtotalCarrito;
   }
 
-  // --- Enviar o Guardar Pedido ---
+  // --- Enviar o Guardar Pedido (Reglas BV-04, BV-05, BV-06, BV-07) ---
   async procesarPedido(): Promise<void> {
     if (this.carrito.length === 0) {
       this.lanzarToast('El pedido está vacío. Añade productos desde el catálogo.', 'alerta');
       return;
     }
 
-    const itemsPedido: PedidoItem[] = this.carrito.map(item => ({
+    // Validar cantidades no nulas ni negativas
+    for (const item of this.carrito) {
+      if (!Number.isInteger(item.cantidad) || item.cantidad <= 0) {
+        this.lanzarToast(`Cantidad no permitida para ${item.producto.producto}.`, 'alerta');
+        return;
+      }
+    }
+
+    // Modelo oficial LineaPedido exigido en el PDF de SENATI
+    const lineas: LineaPedido[] = this.carrito.map(item => ({
+      productoId: item.producto.id,
       producto: item.producto.producto,
-      cantidad: item.cantidad,
       precioUnitario: item.producto.precio,
-      subtotal: item.producto.precio * item.cantidad,
+      cantidad: item.cantidad,
+      subtotal: Number((item.producto.precio * item.cantidad).toFixed(2)),
       volumen: item.producto.volumen,
       imagen: item.producto.imagen
     }));
 
-    const nuevoPedido: Partial<PedidoRegistro> = {
-      cliente: this.clienteNombre,
-      items: itemsPedido,
+    // Modelo oficial Pedido exigido en el PDF de SENATI
+    const nuevoPedido: Omit<Pedido, 'id'> = {
+      fecha: new Date().toISOString(),
+      lineas,
       total: this.totalCarrito,
-      mensaje: this.notasPedido,
-      metodoPago: this.metodoPago,
-      estado: this.isOnline ? 'sincronizado' : 'pendiente'
+      estado: 'PENDIENTE', // Criterio Transversal: Sin API real, todo pedido inicia como PENDIENTE
+      origen: this.isOnline ? 'ONLINE' : 'OFFLINE',
+      cliente: this.clienteNombre.trim() || 'Bodega Registrada',
+      mensaje: this.notasPedido.trim(),
+      metodoPago: this.metodoPago
     };
 
-    if (this.isOnline) {
-      // Simular transmisión inmediata a API Backend Backus y guardado de respaldo
-      try {
-        await this.storageService.guardarPedido(nuevoPedido);
-        await this.cargarPedidos();
-        this.vaciarCarrito();
-        this.notasPedido = '';
-        this.lanzarToast('✅ ¡Pedido transmitido con éxito al servidor central de Backus!', 'exito');
-      } catch (err) {
-        this.lanzarToast('Error al procesar el pedido.', 'error');
+    try {
+      // Regla BV-05: Persistencia en IndexedDB antes de confirmar
+      await this.storageService.guardarPedido(nuevoPedido);
+      await this.cargarPedidos();
+      this.vaciarCarrito();
+      this.notasPedido = '';
+
+      // Regla BV-06: Mensaje claro y honesto (sin falsas afirmaciones de servidor)
+      if (this.isOnline) {
+        this.lanzarToast('Pedido registrado en IndexedDB [PENDIENTE]. Con conexión: listo para sincronizar al integrar API.', 'exito');
+      } else {
+        this.lanzarToast('Modo Offline: Pedido guardado en IndexedDB [PENDIENTE]. Se mantendrá seguro hasta reconexión.', 'alerta');
       }
-    } else {
-      // Modo Offline: Guardado local obligatorio en IndexedDB
-      try {
-        nuevoPedido.estado = 'pendiente';
-        await this.storageService.guardarPedido(nuevoPedido);
-        await this.cargarPedidos();
-        this.vaciarCarrito();
-        this.notasPedido = '';
-        this.lanzarToast('💾 Sin conexión: Pedido guardado en IndexedDB. Se sincronizará automáticamente al volver en línea.', 'alerta');
-      } catch (err) {
-        this.lanzarToast('Error al persistir el pedido en IndexedDB.', 'error');
-      }
+    } catch (err) {
+      // Regla BV-07: Error de IndexedDB informado sin falso éxito
+      this.lanzarToast('Error al persistir el pedido en IndexedDB. No se guardaron cambios.', 'error');
     }
   }
 
@@ -278,55 +298,68 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   async sincronizarPedidosPendientes(): Promise<void> {
-    const pendientes = this.pedidosGuardados.filter(p => p.estado === 'pendiente');
+    const pendientes = this.pedidosGuardados.filter(p => p.estado === 'PENDIENTE');
     if (pendientes.length === 0) {
-      this.lanzarToast('Todos los pedidos locales ya están sincronizados.', 'info');
+      this.lanzarToast('No hay pedidos pendientes de sincronización.', 'info');
       return;
     }
 
     if (!this.isOnline) {
-      this.lanzarToast('No puedes sincronizar mientras estés en modo Offline.', 'alerta');
+      this.lanzarToast('No puedes intentar sincronizar mientras estés en modo Offline.', 'alerta');
       return;
     }
 
     this.sincronizando = true;
     for (const pedido of pendientes) {
       if (pedido.id) {
-        await new Promise(r => setTimeout(r, 400)); // Efecto de sincronización visual
-        await this.storageService.marcarComoSincronizado(pedido.id);
+        await new Promise(r => setTimeout(r, 450)); // Simulación de latencia de red
+        await this.storageService.actualizarEstado(pedido.id, 'SINCRONIZADO');
       }
     }
     this.sincronizando = false;
     await this.cargarPedidos();
-    this.lanzarToast(`🚀 ¡${pendientes.length} pedidos han sido sincronizados exitosamente con Backus!`, 'exito');
+    this.lanzarToast(`¡${pendientes.length} pedidos marcados como SINCRONIZADOS!`, 'exito');
   }
 
   async eliminarPedido(id?: number): Promise<void> {
     if (!id) return;
-    await this.storageService.eliminarPedido(id);
-    await this.cargarPedidos();
-    this.lanzarToast('Pedido eliminado del almacenamiento local.', 'info');
+    try {
+      await this.storageService.eliminarPedido(id);
+      await this.cargarPedidos();
+      this.lanzarToast('Pedido eliminado de IndexedDB.', 'info');
+    } catch (e) {
+      this.lanzarToast('Error al eliminar el pedido de IndexedDB.', 'error');
+    }
   }
 
   async limpiarTodosPedidos(): Promise<void> {
     if (confirm('¿Deseas vaciar todos los pedidos locales almacenados en IndexedDB?')) {
-      await this.storageService.limpiarTodos();
-      await this.cargarPedidos();
-      this.lanzarToast('Base de datos IndexedDB local limpiada.', 'info');
+      try {
+        await this.storageService.limpiarTodos();
+        await this.cargarPedidos();
+        this.lanzarToast('Base de datos IndexedDB local limpiada.', 'info');
+      } catch (e) {
+        this.lanzarToast('Error al limpiar la base de datos.', 'error');
+      }
     }
   }
 
   get pedidosPendientesCount(): number {
-    return this.pedidosGuardados.filter(p => p.estado === 'pendiente').length;
+    return this.pedidosGuardados.filter(p => p.estado === 'PENDIENTE').length;
+  }
+
+  // Formato #00124 mostrado en el wireframe de la página 10 del PDF
+  formatearId(id?: number): string {
+    return id ? '#' + id.toString().padStart(5, '0') : '#00000';
   }
 
   // --- Toggle de Simulación de Red ---
   toggleSimuladorOffline(): void {
     this.simularOffline = !this.simularOffline;
     if (this.simularOffline) {
-      this.lanzarToast('⚠️ Simulación activada: Modo Offline forzado para demostración.', 'alerta');
+      this.lanzarToast('Simulación activada: Modo Offline forzado para demostración.', 'alerta');
     } else {
-      this.lanzarToast('🌐 Simulación desactivada: Restaurado a estado de red real.', 'exito');
+      this.lanzarToast('Simulación desactivada: Restaurado a estado de red real.', 'exito');
     }
   }
 

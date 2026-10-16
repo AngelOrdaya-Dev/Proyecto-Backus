@@ -1,22 +1,26 @@
 import { Injectable } from '@angular/core';
 
-export interface PedidoItem {
+export interface LineaPedido {
+  productoId: number;
   producto: string;
-  cantidad: number;
   precioUnitario: number;
+  cantidad: number;
   subtotal: number;
   volumen?: string;
   imagen?: string;
 }
 
-export interface PedidoRegistro {
+export type EstadoPedido = 'PENDIENTE' | 'SINCRONIZADO' | 'ERROR';
+
+export interface Pedido {
   id?: number;
-  cliente?: string;
-  items: PedidoItem[];
-  total: number;
-  mensaje?: string;
   fecha: string;
-  estado: 'pendiente' | 'sincronizado';
+  lineas: LineaPedido[];
+  total: number;
+  estado: EstadoPedido;
+  origen: 'ONLINE' | 'OFFLINE';
+  cliente?: string;
+  mensaje?: string;
   metodoPago?: string;
 }
 
@@ -32,7 +36,7 @@ export class StorageService {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName, 2);
 
-      request.onupgradeneeded = (event: any) => {
+      request.onupgradeneeded = () => {
         const db = request.result;
         if (!db.objectStoreNames.contains(this.storeName)) {
           db.createObjectStore(this.storeName, {
@@ -42,40 +46,38 @@ export class StorageService {
         }
       };
 
-      request.onsuccess = () => {
-        resolve(request.result);
-      };
-
-      request.onerror = () => {
-        reject(request.error);
-      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
     });
   }
 
-  async guardarPedido(pedido: Partial<PedidoRegistro>): Promise<number> {
+  async guardarPedido(pedido: Omit<Pedido, 'id'>): Promise<number> {
     const db = await this.abrirDB();
 
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(this.storeName, 'readwrite');
       const store = transaction.objectStore(this.storeName);
 
-      const request = store.add({
-        ...pedido,
-        fecha: new Date().toISOString(),
-        estado: pedido.estado || 'pendiente'
-      });
-
-      request.onsuccess = () => {
-        resolve(request.result as number);
+      // Regla BV-06: Todo pedido inicia en estado PENDIENTE por transparencia de sincronización
+      const registro: Omit<Pedido, 'id'> = {
+        fecha: pedido.fecha || new Date().toISOString(),
+        lineas: pedido.lineas,
+        total: pedido.total,
+        estado: 'PENDIENTE',
+        origen: pedido.origen || 'ONLINE',
+        cliente: pedido.cliente,
+        mensaje: pedido.mensaje,
+        metodoPago: pedido.metodoPago
       };
 
-      transaction.onerror = () => {
-        reject(transaction.error);
-      };
+      const request = store.add(registro);
+
+      request.onsuccess = () => resolve(request.result as number);
+      transaction.onerror = () => reject(transaction.error);
     });
   }
 
-  async obtenerPedidos(): Promise<PedidoRegistro[]> {
+  async obtenerPedidos(): Promise<Pedido[]> {
     const db = await this.abrirDB();
 
     return new Promise((resolve, reject) => {
@@ -84,19 +86,29 @@ export class StorageService {
       const request = store.getAll();
 
       request.onsuccess = () => {
-        // Return sorted newest first
-        const records = (request.result || []) as PedidoRegistro[];
+        const records = (request.result || []) as Pedido[];
         records.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
         resolve(records);
       };
 
-      request.onerror = () => {
-        reject(request.error);
-      };
+      request.onerror = () => reject(request.error);
     });
   }
 
-  async marcarComoSincronizado(id: number): Promise<void> {
+  async obtenerPedido(id: number): Promise<Pedido | undefined> {
+    const db = await this.abrirDB();
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(this.storeName, 'readonly');
+      const store = transaction.objectStore(this.storeName);
+      const request = store.get(id);
+
+      request.onsuccess = () => resolve(request.result as Pedido);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async actualizarEstado(id: number, estado: EstadoPedido): Promise<void> {
     const db = await this.abrirDB();
 
     return new Promise((resolve, reject) => {
@@ -107,7 +119,7 @@ export class StorageService {
       request.onsuccess = () => {
         const data = request.result;
         if (data) {
-          data.estado = 'sincronizado';
+          data.estado = estado;
           store.put(data);
         }
         resolve();
@@ -128,6 +140,11 @@ export class StorageService {
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     });
+  }
+
+  async contarPendientes(): Promise<number> {
+    const pedidos = await this.obtenerPedidos();
+    return pedidos.filter(p => p.estado === 'PENDIENTE').length;
   }
 
   async limpiarTodos(): Promise<void> {

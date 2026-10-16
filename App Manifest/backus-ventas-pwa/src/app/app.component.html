@@ -574,34 +574,37 @@
         } @else {
           <div class="orders-cards-list">
             @for (orden of pedidosGuardados; track orden.id) {
-              <div class="order-card" [class.order-pending]="orden.estado === 'pendiente'" [class.order-synced]="orden.estado === 'sincronizado'">
+              <div class="order-card" [class.order-pending]="orden.estado === 'PENDIENTE'" [class.order-synced]="orden.estado === 'SINCRONIZADO'">
                 <div class="order-card-header">
                   <div class="order-id-group">
-                    <span class="order-badge">ORD-#{{ orden.id }}</span>
+                    <span class="order-badge">{{ formatearId(orden.id) }}</span>
                     <span class="order-client">{{ orden.cliente || 'Bodega Registrada' }}</span>
+                    <span class="order-origin-chip" [class.chip-online]="orden.origen === 'ONLINE'" [class.chip-offline]="orden.origen === 'OFFLINE'">
+                      {{ orden.origen }}
+                    </span>
                   </div>
 
-                  <div class="order-status-pill" [class.pill-pending]="orden.estado === 'pendiente'" [class.pill-synced]="orden.estado === 'sincronizado'">
-                    @if (orden.estado === 'pendiente') {
+                  <div class="order-status-pill" [class.pill-pending]="orden.estado === 'PENDIENTE'" [class.pill-synced]="orden.estado === 'SINCRONIZADO'">
+                    @if (orden.estado === 'PENDIENTE') {
                       <svg class="svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/>
                         <polyline points="12 6 12 12 16 14"/>
                       </svg>
-                      <span>Pendiente de Sync</span>
+                      <span>PENDIENTE</span>
                     } @else {
                       <svg class="svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                         <polyline points="20 6 9 17 4 12"/>
                       </svg>
-                      <span>Sincronizado</span>
+                      <span>SINCRONIZADO</span>
                     }
                   </div>
                 </div>
 
                 <div class="order-items-table">
-                  @for (it of orden.items; track it.producto) {
+                  @for (it of orden.lineas; track it.productoId) {
                     <div class="order-table-row">
                       <span class="it-qty">{{ it.cantidad }}x</span>
-                      <span class="it-name">{{ it.producto }} <small>({{ it.volumen }})</small></span>
+                      <span class="it-name">{{ it.producto }} <small>({{ it.volumen || 'Unitario' }})</small></span>
                       <span class="it-sub">{{ formatearPrecio(it.subtotal) }}</span>
                     </div>
                   }
